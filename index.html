@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | KiaH</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <style>
+
+        .loader {
+            width: 20vw;
+            height: 20vw;
+            position: absolute;
+            top: calc(50% - 10vw);
+            left: calc(50% - 10vw);
+            transform: rotate(-90deg);
+        }
+
+        .circle {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            transform-origin: center;
+            animation: spin 5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+                stroke-dasharray: 0 785;
+            }
+
+            50% {
+                transform: rotate(720deg);
+                stroke-dasharray: 785 785;
+            }
+
+            100% {
+                transform: rotate(720deg);
+                stroke-dasharray: 785 785;
+            }
+        }
+
+      /* Center image inside the loading circle */
+      #center-image {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 10vw; /* Width of the center image */
+        z-index: 10; /* Ensure it stays above the progress circle */
+      }
+
+      /* Ensure full screen for the canvas */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #unity-canvas {
+        width: 100vw;
+        height: 100vh;
+        background-image: url('Images/background.png'); /* Replace with your actual background image path */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      #progress-text {
+        position: absolute;
+        top: calc(50% + 5vw);
+        left: calc(50% - 2.5vw);
+        color: #fff;
+        width: 5vw;
+        font-size: 20px;
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+
+    </style>
+  </head>
+  <body>
+      <div id="unity-container" class="unity-desktop" src="Images/background.png">
+          <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+          <!-- Hollow Circle Loading -->
+          <div id="unity-loading-bar" class="loader">
+              <svg viewBox="0 0 300 300">
+                  <circle class="circle" cx="150" cy="150" r="125" />
+              </svg>
+          </div>
+
+          <!-- Image in the center of the circle -->
+          <img id="center-image" src="Images/logo.png" alt="Center Image"> <!-- Replace with the actual path to your center image -->
+      </div>
+
+    <script src="Build/KiaH.loader.js"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+
+      // Handle mobile responsiveness
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.position = "fixed";
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/KiaH.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/KiaH.data.br",
+        frameworkUrl: buildUrl + "/KiaH.framework.js.br",
+        codeUrl: "Build/KiaH.wasm.br",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "6Freedom",
+        productName: "KiaH",
+        productVersion: "1.1.0",
+      };
+
+        
+      // Load Unity Instance and handle progress
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = function() {
+        createUnityInstance(canvas, config, (progress) => {
+            console.log("Loading Progress: " + progress);
+        }).then(function() {
+          // Hide the loading circle when the game is fully loaded
+          loadingBar.style.display = 'none';
+          document.getElementById("center-image").style.display = 'none';
+        }).catch(function(error) {
+          alert(error);
+        });
+      };
+
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
