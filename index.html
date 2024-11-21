@@ -97,7 +97,7 @@
           <img id="center-image" src="Images/logo.png" alt="Center Image"> <!-- Replace with the actual path to your center image -->
       </div>
 
-    <script src="Build/KiaH.loader.js"></script>
+    <script src="Build/KiaH_Git.loader.js"></script>
     <script>
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
@@ -115,11 +115,11 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/KiaH.loader.js";
+      var loaderUrl = buildUrl + "/KiaH_Git.loader.js";
       var config = {
-        dataUrl: buildUrl + "/KiaH.data.br",
-        frameworkUrl: buildUrl + "/KiaH.framework.js.br",
-        codeUrl: "Build/KiaH.wasm.br",
+        dataUrl: buildUrl + "/KiaH_Git.data.unityweb",
+        frameworkUrl: buildUrl + "/KiaH_Git.framework.js.unityweb",
+        codeUrl: "Build/KiaH_Git.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "6Freedom",
         productName: "KiaH",
