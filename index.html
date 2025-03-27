@@ -3,146 +3,125 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | KiaH</title>
+    <title>Unity Web Player | Bas6_SDK</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <style>
-
-        .loader {
-            width: 20vw;
-            height: 20vw;
-            position: absolute;
-            top: calc(50% - 10vw);
-            left: calc(50% - 10vw);
-            transform: rotate(-90deg);
-        }
-
-        .circle {
-            fill: none;
-            stroke: #fff;
-            stroke-width: 2;
-            stroke-linecap: round;
-            transform-origin: center;
-            animation: spin 5s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-                stroke-dasharray: 0 785;
-            }
-
-            50% {
-                transform: rotate(720deg);
-                stroke-dasharray: 785 785;
-            }
-
-            100% {
-                transform: rotate(720deg);
-                stroke-dasharray: 785 785;
-            }
-        }
-
-      /* Center image inside the loading circle */
-      #center-image {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 10vw; /* Width of the center image */
-        z-index: 10; /* Ensure it stays above the progress circle */
-      }
-
-      /* Ensure full screen for the canvas */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-
-      #unity-canvas {
-        width: 100vw;
-        height: 100vh;
-        background-image: url('Images/background.png'); /* Replace with your actual background image path */
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-      }
-
-      #progress-text {
-        position: absolute;
-        top: calc(50% + 5vw);
-        left: calc(50% - 2.5vw);
-        color: #fff;
-        width: 5vw;
-        font-size: 20px;
-        font-family: Arial, sans-serif;
-        text-align: center;
-      }
-
-    </style>
+    <link rel="stylesheet" href="TemplateData/style.css">
   </head>
   <body>
-      <div id="unity-container" class="unity-desktop" src="Images/background.png">
-          <canvas id="unity-canvas" tabindex="-1"></canvas>
-
-          <!-- Hollow Circle Loading -->
-          <div id="unity-loading-bar" class="loader">
-              <svg viewBox="0 0 300 300">
-                  <circle class="circle" cx="150" cy="150" r="125" />
-              </svg>
-          </div>
-
-          <!-- Image in the center of the circle -->
-          <img id="center-image" src="Images/logo.png" alt="Center Image"> <!-- Replace with the actual path to your center image -->
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
       </div>
-
-    <script src="Build/KiaH_Git.loader.js"></script>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Bas6_SDK</div>
+      </div>
+    </div>
     <script>
       var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
 
-      // Handle mobile responsiveness
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/MP4_H264.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/MP4_H264.data.gz",
+        frameworkUrl: buildUrl + "/MP4_H264.framework.js.gz",
+        codeUrl: buildUrl + "/MP4_H264.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "SixFreedom",
+        productName: "Bas6_SDK",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
+
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
+
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
 
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.style.position = "fixed";
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
       }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/KiaH_Git.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/KiaH_Git.data.unityweb",
-        frameworkUrl: buildUrl + "/KiaH_Git.framework.js.unityweb",
-        codeUrl: "Build/KiaH_Git.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "6Freedom",
-        productName: "KiaH",
-        productVersion: "1.1.0",
-      };
+      document.querySelector("#unity-loading-bar").style.display = "block";
 
-        
-      // Load Unity Instance and handle progress
       var script = document.createElement("script");
       script.src = loaderUrl;
-      script.onload = function() {
+      script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-            console.log("Loading Progress: " + progress);
-        }).then(function() {
-          // Hide the loading circle when the game is fully loaded
-          loadingBar.style.display = 'none';
-          document.getElementById("center-image").style.display = 'none';
-        }).catch(function(error) {
-          alert(error);
-        });
-      };
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                document.querySelector("#unity-loading-bar").style.display = "none";
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+
+              }).catch((message) => {
+                alert(message);
+              });
+            };
 
       document.body.appendChild(script);
+
     </script>
   </body>
 </html>
